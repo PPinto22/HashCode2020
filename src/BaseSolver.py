@@ -13,7 +13,7 @@ class BaseSolver:
         :param data_set:  name of the input data set. E.g. a_example
         """
         self.data_set = os.path.splitext(data_set)[0]
-        self.input_path = '{}/{}.in'.format(self.INPUT_DIR, self.data_set)
+        self.input_path = '{}/{}.txt'.format(self.INPUT_DIR, self.data_set)
         self.data = Data(self.input_path)
         self.solution = None
 
