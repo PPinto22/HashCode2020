@@ -18,3 +18,5 @@ if __name__ == '__main__':
     solver = ExampleSolver("a_example.in")
     solver.solve()
     solver.save()
+    #solver.opt()
+    #solver.save()
