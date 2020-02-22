@@ -21,7 +21,7 @@ class BaseSolver:
         if not os.path.exists(self.OUTPUT_DIR):
             os.makedirs(self.OUTPUT_DIR)
 
-    def get_output_path(self, make_unique=True):
+    def get_output_path(self, make_unique=False):
         def _get_output_path(counter=0):
             return '{}/{}{}.txt'.format(self.OUTPUT_DIR, self.data_set, counter if counter > 0 else "")
 

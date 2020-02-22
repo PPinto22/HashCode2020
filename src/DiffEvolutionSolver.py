@@ -1,7 +1,12 @@
+import random
+
 from BaseSolver import BaseSolver
 
+from scipy.optimize import rosen, differential_evolution, NonlinearConstraint
+import numpy as np
 
-class Solver(BaseSolver):
+
+class DiffEvolutionSolver(BaseSolver):
     def __init__(self, data_set):
         print(data_set)
         super().__init__(data_set)
@@ -15,8 +20,9 @@ class Solver(BaseSolver):
         for library in libraries:
             library.books.sort(key=lambda book: book.score)
 
-    def evaluate(self, solution):
-        remaining_days = self.data.D
+    @staticmethod
+    def evaluate(solution, data):
+        remaining_days = data.D
         score = 0
         all_scanned_books = set()
         for library in solution:
@@ -28,16 +34,77 @@ class Solver(BaseSolver):
             unique_books_scanned = books_scanned - all_scanned_books
             all_scanned_books.update(unique_books_scanned)
             score += sum([book.score for book in unique_books_scanned])
-
         return score
 
-    def build_solution(self):
-        self.solution = [library.id for library in self.data.libraries]
+    @staticmethod
+    def evaluate_individual(library_weigths, data):
+        solution = DiffEvolutionSolver.weights_to_library_list(library_weigths, data)
+        score = DiffEvolutionSolver.evaluate(solution, data)
+        return -score
 
-    def solve(self):
+    def get_initial_solution(self):
         self.sort_libraries()
         self.sort_books_in_libraries(self.sorted_libraries)
-        self.solution = self.sorted_libraries
+        return self.sorted_libraries
+
+    def generate_initial_pop(self, initial_solution, popsize, bound_list, std_list):
+        def bound(value, bounds):
+            return max(bounds[0], min(bounds[1], value))
+
+        def deviate(n, bounds, std):
+            return bound(np.random.normal(n, std), bounds)
+
+        pop = [initial_solution]
+        for i in range(popsize):
+            solution = [deviate(value, bounds, std) for value, bounds, std in
+                        zip(initial_solution, bound_list, std_list)]
+            pop.append(solution)
+        return pop
+
+    @staticmethod
+    def library_list_to_weights(library_list, data):
+        weights = [0] * data.L
+        for i, library in enumerate(library_list):
+            weights[library.id] = 1 - (i / len(library_list))
+        return weights
+
+    @staticmethod
+    def weights_to_library_list(weights, data):
+        weights_and_libraries = zip(weights, [data.libraries[i] for i in range(len(weights))])
+        sorted_library_list = sorted(weights_and_libraries, reverse=True, key=lambda tuple_: tuple_[0])
+        return [tuple_[1] for tuple_ in sorted_library_list]
+
+    def solve(self):
+        dim = self.data.L
+        popsize = 50
+        bounds = [(0, 1)] * dim
+
+        initial_weights = self.library_list_to_weights(self.get_initial_solution(), self.data)
+        initial_pop = self.generate_initial_pop(initial_weights, popsize, bounds, [1] * dim)
+
+        result = differential_evolution(self.evaluate_individual, args=(self.data,), bounds=bounds, workers=1,
+                                        mutation=1.2,
+                                        recombination=0.8,
+                                        disp=True,
+                                        popsize=popsize,
+                                        polish=False,
+                                        init=initial_pop,
+                                        maxiter=1000)
+        self.solution = self.weights_to_library_list(result.x, self.data)
+
+    def shuffle(self):
+        solution = self.get_initial_solution()
+        print("Initial score: {}".format(self.evaluate(solution, self.data)))
+        max = 0
+        best_solution = None
+        for i in range(5000):
+            random.shuffle(solution)
+            score = self.evaluate(solution, self.data)
+            if score > max:
+                max = score
+                best_solution = list(solution)
+        self.solution = best_solution
+        print("Best: {}".format(max))
 
     def save(self):
         with open(self.get_output_path(), "w") as file:
@@ -51,7 +118,6 @@ if __name__ == '__main__':
     data_sets = ["a_example", "b_read_on", "c_incunabula", "d_tough_choices", "e_so_many_books",
                  "f_libraries_of_the_world"]
     for data_set in data_sets:
-        solver = Solver(data_set)
+        solver = DiffEvolutionSolver(data_set)
         solver.solve()
-        print(solver.evaluate(solver.solution))
         solver.save()

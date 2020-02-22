@@ -3,7 +3,6 @@ from BaseSolver import BaseSolver
 
 class Solver(BaseSolver):
     def __init__(self, data_set):
-        print(data_set)
         super().__init__(data_set)
         self.scanned_books = set()
         self.sorted_libraries = []
@@ -28,7 +27,6 @@ class Solver(BaseSolver):
             unique_books_scanned = books_scanned - all_scanned_books
             all_scanned_books.update(unique_books_scanned)
             score += sum([book.score for book in unique_books_scanned])
-
         return score
 
     def build_solution(self):
@@ -50,8 +48,9 @@ class Solver(BaseSolver):
 if __name__ == '__main__':
     data_sets = ["a_example", "b_read_on", "c_incunabula", "d_tough_choices", "e_so_many_books",
                  "f_libraries_of_the_world"]
-    for data_set in data_sets:
+    for data_set in [data_sets[0]]:
         solver = Solver(data_set)
+        print(solver.data_set)
         solver.solve()
         print(solver.evaluate(solver.solution))
         solver.save()

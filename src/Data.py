@@ -2,15 +2,13 @@ class Data:
     def __init__(self, input_file):
         self.B, self.L, self.D = None, None, None
         self.books = []
-        self.books_scores = []
         self.libraries = []
         self.read_data(input_file)
 
     def read_data(self, input_file):
         with open(input_file, 'r') as file:
             self.B, self.L, self.D = [int(x) for x in file.readline().split()]
-            self.books_scores = list(map(int, file.readline().split()))
-            self.books = [Book(id, score) for id, score in enumerate(self.books_scores)]
+            self.books = [Book(id, int(score)) for id, score in enumerate(file.readline().split())]
             for i in range(self.L):
                 book_qty, signup_days, throughput = map(int, file.readline().split())
                 book_ids = list(map(int, file.readline().split()))
