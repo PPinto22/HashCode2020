@@ -14,11 +14,13 @@ class DiffEvolutionSolver(BaseSolver):
         self.sorted_libraries = []
 
     def sort_libraries(self):
-        self.sorted_libraries = sorted(self.data.libraries, key=lambda library: library.get_total_book_score())
+        self.sorted_libraries = sorted(self.data.libraries,
+                                       key=lambda library: sum(book.score for book in library.books))
 
-    def sort_books_in_libraries(self, libraries):
-        for library in libraries:
-            library.books.sort(key=lambda book: book.score)
+    def sort_books_in_libraries(self):
+        for library in self.sorted_libraries:
+            # FIXME: This is changing the set to a list...
+            library.books = list(sorted(library.books, key=lambda book: book.score))
 
     @staticmethod
     def evaluate(solution, data):
@@ -37,14 +39,14 @@ class DiffEvolutionSolver(BaseSolver):
         return score
 
     @staticmethod
-    def evaluate_individual(library_weigths, data):
-        solution = DiffEvolutionSolver.weights_to_library_list(library_weigths, data)
+    def evaluate_individual(library_weights, data):
+        solution = DiffEvolutionSolver.weights_to_library_list(library_weights, data)
         score = DiffEvolutionSolver.evaluate(solution, data)
         return -score
 
     def get_initial_solution(self):
         self.sort_libraries()
-        self.sort_books_in_libraries(self.sorted_libraries)
+        self.sort_books_in_libraries()
         return self.sorted_libraries
 
     def generate_initial_pop(self, initial_solution, popsize, bound_list, std_list):
@@ -65,7 +67,7 @@ class DiffEvolutionSolver(BaseSolver):
     def library_list_to_weights(library_list, data):
         weights = [0] * data.L
         for i, library in enumerate(library_list):
-            weights[library.id] = 1 - (i / len(library_list))
+            weights[library.id_] = 1 - (i / len(library_list))
         return weights
 
     @staticmethod
@@ -110,8 +112,8 @@ class DiffEvolutionSolver(BaseSolver):
         with open(self.get_output_path(), "w") as file:
             file.write("{}\n".format(len(self.solution)))
             for library in self.solution:
-                file.write("{} {}\n".format(library.id, len(library.books)))
-                file.write(f"{' '.join(map(str, [book.id for book in library.books]))}\n")
+                file.write("{} {}\n".format(library.id_, len(library.books)))
+                file.write(f"{' '.join(map(str, [book.id_ for book in library.books]))}\n")
 
 
 if __name__ == '__main__':

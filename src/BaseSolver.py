@@ -3,7 +3,6 @@ import os
 from Data import Data
 
 
-
 class BaseSolver:
     INPUT_DIR = "../input"
     OUTPUT_DIR = "../output"
@@ -30,12 +29,10 @@ class BaseSolver:
             if not (make_unique and os.path.exists(path)):
                 return path
         raise FileExistsError
-        
 
     def solve(self):
         # TODO: set self.solution
         pass
-    
 
     def save(self):
         # TODO: write self.solution to self.output_path
