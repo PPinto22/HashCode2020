@@ -31,6 +31,9 @@ class Library:
         self.book_qty = len(books)
         self.signup_days = signup_days
         self.throughput = throughput
+        self.avg_book_score = None
+        self.uniqueness_factor = None
+        self.uniqueness_factor_average_score = None
 
     def get_total_book_score(self):
         return sum(book.score for book in self.books)
