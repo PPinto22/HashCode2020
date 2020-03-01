@@ -15,6 +15,7 @@ class BaseSolver:
         self.input_path = '{}/{}.txt'.format(self.INPUT_DIR, self.data_set)
         self.data = Data(self.input_path)
         self.solution = None
+        self.score = None
 
     def create_output_dir(self):
         if not os.path.exists(self.OUTPUT_DIR):
